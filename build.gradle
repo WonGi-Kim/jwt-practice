@@ -56,6 +56,12 @@ dependencies {
     testCompileOnly 'io.jsonwebtoken:jjwt-api:0.11.5'
     testRuntimeOnly 'com.h2database:h2'
 
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // embedded redis
+    // implementation group: 'it.ozimov', name: 'embedded-redis', version: '0.7.2'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
 }
 
 tasks.named('test') {

@@ -36,6 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.info("토큰 유효성 검증");
             log.info("authorizationHeader :"+authorizationHeader);
             token = authorizationHeader.substring(7);
+            // 블랙리스트 토큰인지 검사
+            if (jwtUtil.isTokenBlacklisted(token)) {
+                log.info("블랙 리스트 토큰");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            }
             username = jwtUtil.getUsernameFromToken(token);
             log.info("username : "+username);
         }

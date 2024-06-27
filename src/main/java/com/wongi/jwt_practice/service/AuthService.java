@@ -4,11 +4,12 @@ import com.wongi.jwt_practice.dto.LoginResponseDto;
 import com.wongi.jwt_practice.dto.UserloginReqeustDto;
 import com.wongi.jwt_practice.entity.User;
 import com.wongi.jwt_practice.entity.UserRoleEnum;
+import com.wongi.jwt_practice.error.TokenExpiredException;
 import com.wongi.jwt_practice.jwt.JwtUtil;
 import com.wongi.jwt_practice.repository.UserRepository;
+import com.wongi.jwt_practice.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
 
     public ResponseEntity<LoginResponseDto> authenticate(String username, String password) {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("유저 없음"));
@@ -86,4 +88,30 @@ public class AuthService {
 
         return new  LoginResponseDto(savedUser.getId(), savedUser.getUsername());
     }
+
+    public String logout(String tokenHeader) {
+        try {
+            String token = tokenHeader.substring(7);
+
+            if (!jwtUtil.validateToken(token)) {
+                throw new TokenExpiredException("Token expired or invalid");
+            }
+            jwtUtil.blacklistToken(token);
+            if(jwtUtil.isTokenBlacklisted(token)) {
+                return "Logout success";
+            } else {
+                throw new IllegalStateException("Failed to blacklist token");
+            }
+        } catch (Exception e) {
+            log.error("Error during logout: {}", e.getMessage());
+
+            throw new IllegalArgumentException("Failed to logout");
+        }
+    }
+
+    public boolean checkToken(String tokenHeader) {
+        String token = tokenHeader.substring(7);
+        return !jwtUtil.validateToken(token);
+    }
+
 }
