@@ -101,7 +101,8 @@ public class JwtUtil {
     // 블랙리스트에 토큰 추가
     public void blacklistToken(String token) {
         long expirationMillis = calculateExpirationMillis();
-        redisUtil.setBlackList(token, token, expirationMillis);
+        String username = getUsernameFromToken(token);
+        redisUtil.setBlackList(token, username, expirationMillis);
     }
 
     // 블랙리스트에서 토큰 검증
